@@ -20,10 +20,10 @@ import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
  *  @param weight is an array that maps inputs of g to their set weights
  *  @param type is an optional array mapping subsets to positive integer types;
  *  if type is present, the returned cover has at most one subset of each type
- *  @param cost(s,covered,uncovered,width) is an optional function that defines
+ *  @param cost(s,covered,uncovered,cmax) is an optional function that defines
  *  the cost values used to select each subset; covered[s] is the number of
  *  items in s that have been covered so far, uncovered[s] is the number of
- *  items not yet covered and width[s] is the maximum number of times that
+ *  items not yet covered and cmax[s] is the maximum number of times that
  *  an item in s has been covered so far; the default function value
  *  is weight[s]/uncovered[s]; replacing this with (1+covered[s])/uncovered[s]
  *  attempts to reduce the number of times that outputs are covered redundantly
@@ -40,7 +40,7 @@ export default function setCoverC(g, weight=0, type=0, cost=0, trace=0) {
 		for (let s = 0; s <= k; s++) type[s] = s;
 	}
 	if (!cost) {
-		cost = (s,covered,uncovered,width) => weight[s] / uncovered[s];
+		cost = (s,covered,uncovered,cmax) => weight[s] / uncovered[s];
 	}
 
 	// define covered[s] = number of covered outputs in s; also uncovered[s]
@@ -50,16 +50,17 @@ export default function setCoverC(g, weight=0, type=0, cost=0, trace=0) {
 	// define coverCount[v] = number of times output v has been covered
 	let coverCount = new Int32Array(g.n+1);
 
-	// define width[s] = max number of times any output in s has been covered
-	let width = new Int32Array(k+1);
+	// define cmax[s] = max number of times any output in s has been covered
+	let cmax = new Int32Array(k+1);
 
 	// define eligible[t] = true until a subset of type t is added to cover
 	let eligible = new Int8Array(1+ Math.max(...type)).fill(1);
 
 	let traceString = ''; let x2s;
 	if (trace) {
-		x2s = (u => (g.n <= 26 && g.isInput(u)) ?
-						"-ABCDEFGHIJKLMNOPQRSTUVWXYZ"[u] : g.x2s(u-k));
+		x2s = (u => (u <= k && k <= 26 ?  "-ABCDEFGHIJKLMNOPQRSTUVWXYZ"[u] : 
+					 (u > k && h-k <= 26 ?  "-abcdefghijklmnopqrstuvwxyz"[u-k] :
+					  g.x2s(u))));
 		traceString += g.toString(5, (e,u) => x2s(g.mate(u,e)),
 						  u => x2s(u) + (u<=k ? `:${weight[u]}` : '')) + '\n';
 		traceString += 'remaining subsets, partial cover, cover weight and ' +
@@ -68,7 +69,7 @@ export default function setCoverC(g, weight=0, type=0, cost=0, trace=0) {
 
 	let subsets = new ArrayHeap(k+1); // subsets remaining to be considered
 	for (let s = 1; s <= k; s++) {
-		if (uncovered[s]) subsets.insert(s, cost(s,covered,uncovered,width));
+		if (uncovered[s]) subsets.insert(s, cost(s,covered,uncovered,cmax));
 	}
 
 	let cover = new List(k);	// list of subsets in current cover
@@ -101,10 +102,10 @@ export default function setCoverC(g, weight=0, type=0, cost=0, trace=0) {
 				let ss = g.mate(i,ee);
 				if (!subsets.contains(ss)) continue;
 				covered[ss]++; uncovered[ss]--;
-				width[ss] = Math.max(width[ss], coverCount[i]);
+				cmax[ss] = Math.max(cmax[ss], coverCount[i]);
 				if (uncovered[ss] == 0) subsets.delete(ss);
 				else {
-					subsets.changekey(ss, cost(ss,covered,uncovered,width));
+					subsets.changekey(ss, cost(ss,covered,uncovered,cmax));
 				}
 			}
 		}
@@ -114,7 +115,7 @@ export default function setCoverC(g, weight=0, type=0, cost=0, trace=0) {
 	if (trace)
 		traceString += `\ncover: ${cover.toString(x2s)} ${coverWeight}\n`;
 
-	let W = Math.max(...coverCount);
+	let xmax = Math.max(...coverCount) - 1;
 	return [cover, traceString, {'coverWeight':coverWeight,
-								 'excess':excess, 'width':W}];
+								 'excess':excess, 'max excess':xmax}];
 }

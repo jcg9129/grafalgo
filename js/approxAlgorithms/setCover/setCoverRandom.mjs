@@ -12,6 +12,7 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
 import { shuffle } from '../../common/Random.mjs';
 import { randomBigraph, regularize }
 		from '../../graphAlgorithms/misc/RandomGraph.mjs';
+import { randomFraction } from '../../common/Random.mjs';
 import setCoverSizeBound from './setCoverSizeBound.mjs';
 import setCoverSplitBound from './setCoverSplitBound.mjs';
 import setCoverLabelBound from './setCoverLabelBound.mjs';
@@ -20,51 +21,62 @@ import setCoverLabelBound from './setCoverLabelBound.mjs';
  *  @param k is the number of sets
  *  @param h is the number of elements in the base set
  *  @param coverage is the number of times each item appears in a subset
- *  @param scale is scale factor used to adjust weight of seeded cover
  *  @param randomWeight is a function that returns a random number
  *  @param args collects remaining arguments into an array of arguments
  *  for randomWeight
- *  @return tuple [g,weight,properties] and properties is an object containing
- *  several properties of the graph g: the lower bounds, sizeBound and
- *  splitBound, the weight of the seed cover built into the graph and the
- *  maximum number of times any item of the base set is included in a subset
+ *  @return tuple [g,weight,lowerBounds,upperBound] and lowerBounds is an
+ *  array of three lower bounds on the opimimum cover weight and upperBound
+ *  is an upperBound on the weight, specifically it is the weight of
+ *  a secret cover that is embedded in the constructed instance.
  */
-export default function setCoverRandom(k, h, coverage, scale,
-									   randomWeight, ...args) {
-
+export default function setCoverRandom(k, h, coverage, randomWeight, ...args) {
 	let subSize = coverage*h/k; // average subset size
-	let seedSize = Math.round(h/subSize);
-							 	// number of subsets in hidden "seed"
 
-	let items = new List(h);
-	let seed = randomBigraph(seedSize, h/seedSize, h);
-	items.range(seedSize+1,seedSize+h); regularize(seed, 1, items); 
-	let camo = randomBigraph(k-seedSize, h*(coverage-1)/(k-seedSize), h);
-	items.range((k-seedSize)+1,(k-seedSize)+h);
-		regularize(camo,coverage-1,items);
+	// allow for small variation in coverage
+	let secretCoverage = (coverage <= 2 ? 1 : 1.05);
+	let camoCoverage = coverage - secretCoverage;
 
+	// determine number of subsets in secret and camouflage
+	let secretWidth = Math.round(h*secretCoverage/subSize);
+	let camoWidth = k - secretWidth
+
+	// allow some irregularity in camo coverage 
+	let camoRegularity = Math.max(1, Math.log2(camoCoverage));
+
+	// create graphs for  secret and comouflage
+	let secret = randomBigraph(secretWidth, h*secretCoverage/secretWidth, h);
+	let items = new List(h); items.range(secretWidth+1,secretWidth+h);
+		regularize(secret, secretCoverage, items); 
+	items.range(1, secretWidth);
+		regularize(secret, subSize, items, Math.max(1, Math.log2(subSize)));
+	let camo = randomBigraph(camoWidth, h*camoCoverage/camoWidth, h);
+	items.range(camoWidth+1,camoWidth+h);
+		regularize(camo, camoCoverage, items, camoRegularity);
+	items.range(1, camoWidth);
+		regularize(camo, subSize, items, Math.max(1, Math.log2(subSize)));
+
+	// combine the graphs
 	let g = new Graph(k+h, subSize*k); g.setBipartition(k);
-	for (let e = seed.first(); e; e = seed.next(e))
-		g.join(seed.left(e), seed.right(e)+(k-seedSize));
+	for (let e = secret.first(); e; e = secret.next(e))
+		g.join(secret.left(e), secret.right(e)+(k-secretWidth));
 	for (let e = camo.first(); e; e = camo.next(e))
-		g.join(camo.left(e)+seedSize, camo.right(e)+seedSize);
+		g.join(camo.left(e)+secretWidth, camo.right(e)+secretWidth);
 
-	// assign weights to sets and compute weight of seed cover
-	let weight = new Array(k+1);
-	let seedWeight = 0; let allInteger = true;
-	for (let j = 1; j <= k; j++) {
-		weight[j] = randomWeight(...args);
-		if (!Number.isInteger(weight[j])) allInteger = false;
+	// assign costs to subsets, with lower costs for subsets in secret
+	let weightList = new Float32Array(k);
+	for (let j in weightList) weightList[j] = randomWeight(...args);
+	weightList.sort();
+	let weight = new Float32Array(k+1); let upperBound = 0;
+	let s = 1; let sr = secretWidth;	// next secret subset, # remaining
+	let t = secretWidth+1; let tr = camoWidth; // next camo subset, # remaining
+	for (let w of weightList) {
+		if (sr && randomFraction() < Math.sqrt(coverage)*(sr/(sr+tr))) {
+			weight[s++] = w; sr--; upperBound += w;
+		} else {
+			weight[t++] = w; tr--;
+		}
 	}
-	for (let j = 1; j <= seedSize; j++) {
-		weight[j] = scale*weight[j];
-		if (allInteger) weight[j] = Math.round(weight[j]);
-		seedWeight += weight[j];
-	}
-
-	let maxCover = 0;
-	for (let i = g.firstOutput(); i; i = g.nextOutput(i))
-		maxCover = Math.max(maxCover, g.degree(i));
+	// upperBound is now the total weight of the secret cover
 
 	// now, scramble graph, while keeping outputs fixed
 	let outputs = new Set();
@@ -74,10 +86,9 @@ export default function setCoverRandom(k, h, coverage, scale,
 
 	g.sortAllEplists()
 
-	let sb = setCoverSizeBound(g,weight);
-	let wsb = setCoverSplitBound(g,weight);
-	let lb = setCoverLabelBound(g,weight);
+	let lowerBounds = [ setCoverSizeBound(g,weight),
+						setCoverSplitBound(g,weight),
+						setCoverLabelBound(g,weight) ];
 
-	return [g, weight, {'sizeBound':sb, 'splitBound':wsb, 'labelBound':lb,
-						'seedWeight':seedWeight, 'subsetSize':subSize} ];
+	return [g, weight, lowerBounds, upperBound];
 }

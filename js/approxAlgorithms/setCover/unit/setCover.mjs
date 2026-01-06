@@ -25,13 +25,6 @@ let algomap = {
 				 trace), setCoverVerify]
 }
 
-function p2s(props) {
-	let wsb = props.splitBound;
-	wsb = Number.isInteger(wsb) ? wsb : wsb.toFixed(2);
-	return `[${props.sizeBound} ${wsb} ${props.labelBound}` +
-			` ${props.seedWeight}]`;
-}
-
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
 let tester = new Tester(args, algomap);
 
@@ -41,23 +34,35 @@ g.setBipartition(4);
 let weight = [0,3,7,4,8];
 tester.addTest('small set cover instance (4,12)', g, weight);
 
-let props;
-[g,weight, props] = setCoverRandom(8, 16, 2, 1, randomInteger, 1, 1);
-tester.addTest(`small unit weight random (8,16,2,1): ${p2s(props)}`, g, weight);
+let lowerBounds, upperBound;
+[g,weight,lowerBounds,upperBound] =
+				setCoverRandom(8,16,2, randomInteger,1,1);
+tester.addTest(`small unit weight random (8,16,2): ` +
+				`[${lowerBounds}], ${upperBound}`, g, weight);
 
-[g,weight, props] = setCoverRandom(6, 18, 2, .5, randomInteger, 2, 20);
-tester.addTest(`small random (6,18,2,.5): ${p2s(props)}`, g, weight);
+[g,weight, lowerBounds,upperBound] =
+				setCoverRandom(6, 18, 2, randomInteger, 2, 20);
+tester.addTest(`small random (6,18,2): ` +
+				`[${lowerBounds}], ${upperBound}`, g, weight);
 
-[g,weight, props] = setCoverRandom(6, 18, 2, 1, randomInteger, 1, 1);
-tester.addTest(`small unit weight random (6,18,2,1): ${p2s(props)}`, g, weight);
+[g,weight, lowerBounds,upperBound] =
+				setCoverRandom(6, 18, 2, randomInteger, 1, 1);
+tester.addTest(`small unit weight random (6,18,2): ` +
+				`[${lowerBounds}], ${upperBound}`, g, weight);
 
-[g, weight, props] = setCoverRandom(50,200,5,.5, randomInteger, 5, 99);
-tester.addTest(`medium random (50,200,5,.5): ${p2s(props)}`, g, weight);
+[g, weight, lowerBounds,upperBound] =
+				setCoverRandom(50,200,5, randomInteger, 5, 99);
+tester.addTest(`medium random (50,200,5): ` +
+				`[${lowerBounds}], ${upperBound}`, g, weight);
 
-[g, weight, props] = setCoverRandom(50,200,5,1, randomInteger, 1, 1);
-tester.addTest(`medium unit weight random (50,200,5,1): ${p2s(props)}`, g, weight);
+[g, weight, lowerBounds,upperBound] =
+				setCoverRandom(50,200,5, randomInteger, 1, 1);
+tester.addTest(`medium unit weight random (50,200,5): ` +
+				`[${lowerBounds}], ${upperBound}`, g, weight);
 
-[g, weight, props] = setCoverRandom(100,2000,5,.5, randomInteger, 10, 999);
-tester.addTest(`large random (100,2000,5,.5): ${p2s(props)}`, g, weight);
+[g, weight, lowerBounds, upperBound] =
+				setCoverRandom(100,2000,5, randomInteger, 10, 999);
+tester.addTest(`large random (100,2000,5): ` +
+				`[${lowerBounds}], ${upperBound}`, g, weight);
 
 tester.run();

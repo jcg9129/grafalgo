@@ -27,9 +27,9 @@ export default function setCoverBYE(g, weight, trace=0) {
 
 	let x2s;
 	if (trace) {
-		x2s = (u => (k <= 26 && h <= 26) ?
-					 (u <= k ? "-ABCDEFGHIJKLMNOPQRSTUVWXYZ"[u] : g.x2s(u-k))
-					 : (u <= k ? u : -(u-k)));
+		x2s = (u => (u <= k && k <= 26 ?  "-ABCDEFGHIJKLMNOPQRSTUVWXYZ"[u] : 
+					 (u > k && h-k <= 26 ?  "-abcdefghijklmnopqrstuvwxyz"[u-k] :
+					  g.x2s(u))));
 		traceString += g.toString(1, (e,u) => x2s(g.mate(u,e)),
 						  u => x2s(u) + (u<=k ? `:${weight[u]}` : '')) + '\n';
 		traceString += "uncovered items, slacks of first item's subsets, " +
