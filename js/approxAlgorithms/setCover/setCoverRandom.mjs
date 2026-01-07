@@ -33,7 +33,7 @@ export default function setCoverRandom(k, h, coverage, randomWeight, ...args) {
 	let subSize = coverage*h/k; // average subset size
 
 	// allow for small variation in coverage
-	let secretCoverage = (coverage <= 2 ? 1 : 1.05);
+	let secretCoverage = (coverage <= 2.1 ? 1 : 1.05);
 	let camoCoverage = coverage - secretCoverage;
 
 	// determine number of subsets in secret and camouflage
@@ -48,12 +48,14 @@ export default function setCoverRandom(k, h, coverage, randomWeight, ...args) {
 	let items = new List(h); items.range(secretWidth+1,secretWidth+h);
 		regularize(secret, secretCoverage, items); 
 	items.range(1, secretWidth);
-		regularize(secret, subSize, items, Math.max(1, Math.log2(subSize)));
+		regularize(secret, h*secretCoverage/secretWidth, items,
+				   Math.max(1, Math.log2(subSize)));
 	let camo = randomBigraph(camoWidth, h*camoCoverage/camoWidth, h);
 	items.range(camoWidth+1,camoWidth+h);
 		regularize(camo, camoCoverage, items, camoRegularity);
 	items.range(1, camoWidth);
-		regularize(camo, subSize, items, Math.max(1, Math.log2(subSize)));
+		regularize(camo, h*camoCoverage/camoWidth, items,
+				   Math.max(1, Math.log2(subSize)));
 
 	// combine the graphs
 	let g = new Graph(k+h, subSize*k); g.setBipartition(k);

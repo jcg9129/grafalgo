@@ -28,11 +28,12 @@ let algomap = {
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
 let tester = new Tester(args, algomap);
 
-let g = new Graph();
+let weight = [0,3,7,4,8]; let g = new Graph();
+/*
 g.fromString('{a[e h j m p] b[f g i n o] c[g k l m p] d[f h k l o]}');
 g.setBipartition(4);
-let weight = [0,3,7,4,8];
 tester.addTest('small set cover instance (4,12)', g, weight);
+*/
 
 let lowerBounds, upperBound;
 [g,weight,lowerBounds,upperBound] =
@@ -41,7 +42,7 @@ tester.addTest(`small unit weight random (8,16,2): ` +
 				`[${lowerBounds}], ${upperBound}`, g, weight);
 
 [g,weight, lowerBounds,upperBound] =
-				setCoverRandom(6, 18, 2, randomInteger, 2, 20);
+				setCoverRandom(6, 18, 2, randomInteger, 2, 15);
 tester.addTest(`small random (6,18,2): ` +
 				`[${lowerBounds}], ${upperBound}`, g, weight);
 

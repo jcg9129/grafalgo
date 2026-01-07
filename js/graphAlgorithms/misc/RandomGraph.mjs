@@ -432,7 +432,7 @@ export function randomRegularGraph(n, d, r=1) {
  *  @param no is the # of output (right-side) vertices
  *  @param r allows the regularity requirement to be relaxed; vertex degrees
  *  may differ from the average degree target by less than r on return;
- *  this allows non-integral targets and graphs that arr "almost regular"
+ *  this allows non-integral targets and graphs that are "almost regular"
  *  @param return Graph object with inputs 1..ni, outputs ni+1..ni+no
  */
 export function randomRegularBigraph(ni, id, no=ni, r=1) {
@@ -473,6 +473,11 @@ export function regularize(g, d, W, r=1) {
 		else if (du > d) over.enq(u);	// those in over can give up one
 	}
 	while (!lo.empty() || !hi.empty()) {
+		ea && assert((!lo.empty() || !under.empty()) &&
+					 (!hi.empty() || !over.empty()),
+					 `RandomGraph.regularize: graph cannot be regularized ` +
+					 `${lo.length} ${under.length} ` +
+					 `${hi.length} ${over.length}`);
 		let u = (!lo.empty() ? lo.first() : under.first());
 		let v = (!hi.empty() ? hi.first() :  over.first());
 		// find a neighbor w of v that is not a neighbor of u,
