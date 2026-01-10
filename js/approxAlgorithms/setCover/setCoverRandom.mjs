@@ -21,6 +21,8 @@ import setCoverLabelBound from './setCoverLabelBound.mjs';
  *  @param k is the number of sets
  *  @param h is the number of elements in the base set
  *  @param coverage is the number of times each item appears in a subset
+ *  @param uniform is a flag which when set ensures that every subset
+ *  has the same size and that the coverage or all items is uniform.
  *  @param randomWeight is a function that returns a random number
  *  @param args collects remaining arguments into an array of arguments
  *  for randomWeight
@@ -29,11 +31,12 @@ import setCoverLabelBound from './setCoverLabelBound.mjs';
  *  is an upperBound on the weight, specifically it is the weight of
  *  a secret cover that is embedded in the constructed instance.
  */
-export default function setCoverRandom(k, h, coverage, randomWeight, ...args) {
+export default function setCoverRandom(k, h, coverage, uniform,
+									   randomWeight, ...args) {
 	let subSize = coverage*h/k; // average subset size
 
 	// allow for small variation in coverage
-	let secretCoverage = (coverage <= 2.1 ? 1 : 1.05);
+	let secretCoverage = (uniform || coverage <= 2.1 ? 1 : 1.05);
 	let camoCoverage = coverage - secretCoverage;
 
 	// determine number of subsets in secret and camouflage
@@ -49,13 +52,13 @@ export default function setCoverRandom(k, h, coverage, randomWeight, ...args) {
 		regularize(secret, secretCoverage, items); 
 	items.range(1, secretWidth);
 		regularize(secret, h*secretCoverage/secretWidth, items,
-				   Math.max(1, Math.log2(subSize)));
+				   uniform ? 1 : Math.max(1, Math.log2(subSize)));
 	let camo = randomBigraph(camoWidth, h*camoCoverage/camoWidth, h);
 	items.range(camoWidth+1,camoWidth+h);
-		regularize(camo, camoCoverage, items, camoRegularity);
+		regularize(camo, camoCoverage, items, uniform ? 1 : camoRegularity);
 	items.range(1, camoWidth);
 		regularize(camo, h*camoCoverage/camoWidth, items,
-				   Math.max(1, Math.log2(subSize)));
+				   uniform ? 1 : Math.max(1, Math.log2(subSize)));
 
 	// combine the graphs
 	let g = new Graph(k+h, subSize*k); g.setBipartition(k);

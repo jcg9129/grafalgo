@@ -29,40 +29,43 @@ let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
 let tester = new Tester(args, algomap);
 
 let weight = [0,3,7,4,8]; let g = new Graph();
-/*
 g.fromString('{a[e h j m p] b[f g i n o] c[g k l m p] d[f h k l o]}');
 g.setBipartition(4);
 tester.addTest('small set cover instance (4,12)', g, weight);
-*/
 
 let lowerBounds, upperBound;
 [g,weight,lowerBounds,upperBound] =
-				setCoverRandom(8,16,2, randomInteger,1,1);
+				setCoverRandom(8,16,2,0, randomInteger,1,1);
 tester.addTest(`small unit weight random (8,16,2): ` +
 				`[${lowerBounds}], ${upperBound}`, g, weight);
 
 [g,weight, lowerBounds,upperBound] =
-				setCoverRandom(6, 18, 2, randomInteger, 2, 15);
+				setCoverRandom(6, 18, 2, 0, randomInteger, 2, 15);
 tester.addTest(`small random (6,18,2): ` +
 				`[${lowerBounds}], ${upperBound}`, g, weight);
 
 [g,weight, lowerBounds,upperBound] =
-				setCoverRandom(6, 18, 2, randomInteger, 1, 1);
+				setCoverRandom(6, 18, 2, 1, randomInteger, 2, 15);
+tester.addTest(`small uniform random (6,18,2): ` +
+				`[${lowerBounds}], ${upperBound}`, g, weight);
+
+[g,weight, lowerBounds,upperBound] =
+				setCoverRandom(6, 18, 2, 0, randomInteger, 1, 1);
 tester.addTest(`small unit weight random (6,18,2): ` +
 				`[${lowerBounds}], ${upperBound}`, g, weight);
 
 [g, weight, lowerBounds,upperBound] =
-				setCoverRandom(50,200,5, randomInteger, 5, 99);
+				setCoverRandom(50,200,5, 0, randomInteger, 5, 99);
 tester.addTest(`medium random (50,200,5): ` +
 				`[${lowerBounds}], ${upperBound}`, g, weight);
 
 [g, weight, lowerBounds,upperBound] =
-				setCoverRandom(50,200,5, randomInteger, 1, 1);
+				setCoverRandom(50,200,5, 0, randomInteger, 1, 1);
 tester.addTest(`medium unit weight random (50,200,5): ` +
 				`[${lowerBounds}], ${upperBound}`, g, weight);
 
 [g, weight, lowerBounds, upperBound] =
-				setCoverRandom(100,2000,5, randomInteger, 10, 999);
+				setCoverRandom(100,2000,5, 0, randomInteger, 10, 999);
 tester.addTest(`large random (100,2000,5): ` +
 				`[${lowerBounds}], ${upperBound}`, g, weight);
 
