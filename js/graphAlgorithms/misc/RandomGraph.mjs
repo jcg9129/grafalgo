@@ -455,7 +455,7 @@ export function randomRegularBigraph(ni, id, no=ni, r=1) {
 /** Helper function for regular graph generators. 
  *  @param g is graph being generated
  *  @param d is target vertex degree (need not be an integer)
- *  @param W is a subset of vertices to be regularized;
+ *  @param W is a List defining the subset of vertices to be regularized;
  *  the average degrees of vertices in W are assumed to be d initially
  *  @param r allows the regularity requirement to be relaxed; the degrees
  *  of the vertices in W are in the open interval (d-r,d+r) on return;

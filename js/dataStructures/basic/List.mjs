@@ -269,10 +269,11 @@ export default class List extends Top {
 	deq() { return this.pop(); }
 
 	/** Set list to a range.
-	 *  @param lo is in integer
-	 *  @param hi > lo defines range [lo,hi)
+	 *  @param lo is a positive integer
+	 *  @param hi >= lo defines range [lo,hi]
 	 */
 	range(lo, hi) {
+		ea && assert(1 <= lo && lo <= hi && hi <= this.n);
 		this.clear(); for (let i = lo; i <= hi; i++) this.enq(i);
 	}
 

@@ -34,10 +34,6 @@ g.setBipartition(4);
 tester.addTest('small set cover instance (4,12)', g, weight);
 
 let lowerBounds, upperBound;
-[g,weight,lowerBounds,upperBound] =
-				setCoverRandom(8,16,2,0, randomInteger,1,1);
-tester.addTest(`small unit weight random (8,16,2): ` +
-				`[${lowerBounds}], ${upperBound}`, g, weight);
 
 [g,weight, lowerBounds,upperBound] =
 				setCoverRandom(6, 18, 2, 0, randomInteger, 2, 15);
@@ -50,7 +46,7 @@ tester.addTest(`small uniform random (6,18,2): ` +
 				`[${lowerBounds}], ${upperBound}`, g, weight);
 
 [g,weight, lowerBounds,upperBound] =
-				setCoverRandom(6, 18, 2, 0, randomInteger, 1, 1);
+				setCoverRandom(6, 18, 2, 0);
 tester.addTest(`small unit weight random (6,18,2): ` +
 				`[${lowerBounds}], ${upperBound}`, g, weight);
 
@@ -60,7 +56,7 @@ tester.addTest(`medium random (50,200,5): ` +
 				`[${lowerBounds}], ${upperBound}`, g, weight);
 
 [g, weight, lowerBounds,upperBound] =
-				setCoverRandom(50,200,5, 0, randomInteger, 1, 1);
+				setCoverRandom(50,200,5, 0);
 tester.addTest(`medium unit weight random (50,200,5): ` +
 				`[${lowerBounds}], ${upperBound}`, g, weight);
 

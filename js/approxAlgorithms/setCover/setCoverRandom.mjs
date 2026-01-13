@@ -31,34 +31,37 @@ import setCoverLabelBound from './setCoverLabelBound.mjs';
  *  is an upperBound on the weight, specifically it is the weight of
  *  a secret cover that is embedded in the constructed instance.
  */
-export default function setCoverRandom(k, h, coverage, uniform,
-									   randomWeight, ...args) {
+export default function setCoverRandom(k, h, coverage, uniform=1,
+									   randomWeight=(()=>1), ...args) {
 	let subSize = coverage*h/k; // average subset size
 
-	// allow for small variation in coverage
-	let secretCoverage = (uniform || coverage <= 2.1 ? 1 : 1.05);
-	let camoCoverage = coverage - secretCoverage;
-
 	// determine number of subsets in secret and camouflage
-	let secretWidth = Math.round(h*secretCoverage/subSize);
+	let secretWidth = Math.ceil(h/subSize);
 	let camoWidth = k - secretWidth
 
-	// allow some irregularity in camo coverage 
-	let camoRegularity = Math.max(1, Math.log2(camoCoverage));
+	// average coverage for secret and camouflage
+	let secretCoverage = secretWidth*subSize/h;
+	let camoCoverage = coverage - secretCoverage;
 
 	// create graphs for  secret and comouflage
 	let secret = randomBigraph(secretWidth, h*secretCoverage/secretWidth, h);
-	let items = new List(h); items.range(secretWidth+1,secretWidth+h);
-		regularize(secret, secretCoverage, items); 
-	items.range(1, secretWidth);
-		regularize(secret, h*secretCoverage/secretWidth, items,
-				   uniform ? 1 : Math.max(1, Math.log2(subSize)));
 	let camo = randomBigraph(camoWidth, h*camoCoverage/camoWidth, h);
-	items.range(camoWidth+1,camoWidth+h);
-		regularize(camo, camoCoverage, items, uniform ? 1 : camoRegularity);
+
+	// now regularize the subset sizes in both
+	let items = new List(k+h);
+	items.range(1, secretWidth);
+	regularize(secret, h*secretCoverage/secretWidth, items,
+			   uniform ? 1 : subSize - Math.sqrt(subSize));
 	items.range(1, camoWidth);
-		regularize(camo, h*camoCoverage/camoWidth, items,
-				   uniform ? 1 : Math.max(1, Math.log2(subSize)));
+	regularize(camo, h*camoCoverage/camoWidth, items,
+			   uniform ? 1 : subSize - Math.sqrt(subSize));
+
+	// and the coverages for both
+	items.range(secretWidth+1,secretWidth+h);
+	regularize(secret, secretCoverage, items, 1); 
+	items.range(camoWidth+1,camoWidth+h);
+	regularize(camo, camoCoverage, items,
+			   uniform ? 1 : Math.max(1, Math.log2(camoCoverage)));
 
 	// combine the graphs
 	let g = new Graph(k+h, subSize*k); g.setBipartition(k);
